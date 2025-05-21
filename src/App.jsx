@@ -31,12 +31,14 @@ import Profile from './Components/Profile/Profile'
 import Selling from './Components/Selling/Selling'
 
 
+// dealrsdetails fav + buynow + chedck profile again
+
 let x = createBrowserRouter([
   {
     path: "",
     element: <Layout />,
     children: [
-      { index: true, element: <SignIn /> },
+      { index: true, element: <Home /> },
       {
         path: "brands",
         element: <Brands />,

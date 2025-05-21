@@ -11,6 +11,8 @@ export default function Brands() {
   function getBrands() {
     axios.get(`http://arabytak.runasp.net/api/Brand/Brands`)
       .then((res) => {
+        console.log(res.data);
+        
         setBrands(res.data);
       })
       .catch((res) => { });

@@ -42,16 +42,36 @@ export default function DealershipCars() {
       });
   }, [id]);
 
-  const handleToggleFavorite = (carId) => {
-    setFavorites(prev =>
-      prev.includes(carId)
-        ? prev.filter(favId => favId !== carId)
-        : [...prev, carId]
-    );
+  const handleToggleFavorite = async (carId) => {
+    const token = localStorage.getItem('userToken');
+
+    // Optimistic UI update
+    setFavorites(prev => {
+      const isFavorite = prev.includes(carId);
+      return isFavorite ? prev.filter(favId => favId !== carId) : [...prev, carId];
+    });
+
+    try {
+      await axios.post(
+        `http://arabytak.runasp.net/api/Favorite/AddItems?ProductId=${carId}`,
+        null, 
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.error('Failed to add favorite:', error);
+      // Revert UI update if API fails
+      setFavorites(prev => {
+        const isFavorite = prev.includes(carId);
+        return isFavorite ? prev.filter(favId => favId !== carId) : [...prev, carId];
+      });
+    }
   };
 
   const handleViewDetails = (car) => {
-    // Determine status: 1 if used, else 0
     const status = car.status?.toLowerCase() === 'used' ? 1 : 0;
     navigate(`/car-details/${status}/${car.carId}`);
   };
@@ -76,7 +96,6 @@ export default function DealershipCars() {
     <div className="max-w-7xl mt-12 mx-auto py-10 px-4">
       {/* Dealer Info Section */}
       <div className="w-full bg-white rounded-xl shadow-md p-6 mb-10 flex items-center justify-between gap-8">
-
         {/* Left: Dealer Image */}
         <div className="flex-shrink-0 w-44 h-44">
           {dealer.pictureUrl ? (
@@ -118,8 +137,7 @@ export default function DealershipCars() {
 
         {/* Right: Dealer Details */}
         <div className="min-w-[350px] flex flex-col gap-6">
-
-          {/* Branches at top: 2 columns */}
+          {/* Branches */}
           <div className="grid grid-cols-2 gap-6 text-sm text-gray-700">
             <div>
               <p className="font-semibold mb-1 flex items-center gap-1"><FaMapMarkerAlt /> Main Branch</p>
@@ -157,7 +175,7 @@ export default function DealershipCars() {
             </div>
           </div>
 
-           {/* Phone, WhatsApp, Working hours below branches  */}
+          {/* Contact Info */}
           <div className="grid grid-cols-4 gap-6 text-sm text-gray-700">
             <div>
               <p className="font-semibold mb-1 flex items-center gap-1"><FaPhone /> Phone Number</p>

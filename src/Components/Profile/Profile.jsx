@@ -4,6 +4,9 @@ import axios from 'axios';
 
 const Profile = () => {
   const [profileImage, setProfileImage] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -16,21 +19,32 @@ const Profile = () => {
   useEffect(() => {
     const displayName = localStorage.getItem('displayName') || '';
     const email = localStorage.getItem('email') || '';
-    const [firstName = '', lastName = ''] = displayName.split(' ');
+    const storedPhone = localStorage.getItem('phoneNumber') || '+201012766524';
+    const names = displayName.trim().split(' ');
+    const firstName = names[0] || '';
+    const lastName = names.slice(1).join(' ') || '';
 
     setFormData({
       firstName,
       lastName,
       email,
-      phoneNumber: '+201012766524', // Default/fallback
+      phoneNumber: storedPhone,
     });
+  }, []);
 
-    console.log('Token:', token);
-  }, [token]);
+  useEffect(() => {
+    
+    return () => {
+      if (profileImage) {
+        URL.revokeObjectURL(profileImage);
+      }
+    };
+  }, [profileImage]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setSelectedFile(file);
       setProfileImage(URL.createObjectURL(file));
     }
   };
@@ -43,26 +57,48 @@ const Profile = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const displayName = localStorage.getItem('displayName') || '';
-    const [storedFirst = '', storedLast = ''] = displayName.split(' ');
-    const storedEmail = localStorage.getItem('email') || '';
+  const displayName = localStorage.getItem('displayName') || '';
+  const storedEmail = localStorage.getItem('email') || '';
+  const storedPhone = localStorage.getItem('phoneNumber') || '+201012766524';
 
-    const fullNameChanged = formData.firstName !== storedFirst || formData.lastName !== storedLast;
-    const emailChanged = formData.email !== storedEmail;
+  const names = displayName.trim().split(' ');
+  const storedFirst = names[0] || '';
+  const storedLast = names.slice(1).join(' ') || '';
 
-    const requests = [];
+  if (!formData.firstName || !formData.lastName || !formData.email || !formData.phoneNumber) {
+    alert('Please fill in all required fields.');
+    return;
+  }
 
+  const fullNameChanged =
+    formData.firstName !== storedFirst || formData.lastName !== storedLast;
+  const emailChanged = formData.email !== storedEmail;
+  const phoneChanged = formData.phoneNumber !== storedPhone;
+
+  if (!fullNameChanged && !emailChanged && !phoneChanged) {
+    alert('No changes detected.');
+    return;
+  }
+
+  if (!token) {
+    alert('User token is missing. Please log in again.');
+    return;
+  }
+
+  const requests = [];
+  setIsSubmitting(true);
+
+  try {
     if (fullNameChanged) {
       const newUserName = `${formData.firstName} ${formData.lastName}`;
       requests.push(
         axios.post(
-  'http://arabytak.runasp.net/api/ManageUser/UpdateUser',
-  { newUserName: newUserName },
-  { headers: { Authorization: `Bearer ${userToken}` } }
-    )
+          `http://arabytak.runasp.net/api/ManageUser/UpdateUser?newUserName=${encodeURIComponent(newUserName)}`,
+          { headers: { userToken: `Bearer ${token}` } }
+        )
       );
     }
 
@@ -70,40 +106,36 @@ const Profile = () => {
       requests.push(
         axios.post(
           `http://arabytak.runasp.net/api/ManageUser/UpdateUser?newEmail=${encodeURIComponent(formData.email)}`,
-          null,
+          
           { headers: { Authorization: `Bearer ${token}` } }
         )
       );
     }
 
-    if (!fullNameChanged && !emailChanged) {
-      requests.push(
-        axios.post(
-          'http://arabytak.runasp.net/api/ManageUser/UpdateUser',
-          { ...formData },
-          { headers: { Authorization: `Bearer ${token}` } }
-        )
-      );
-    }
+   
 
-    Promise.all(requests)
-      .then(responses => {
-        console.log('Update successful:', responses.map(r => r.data));
-        alert('Profile updated successfully!');
-        // Update localStorage if needed:
-        localStorage.setItem('displayName', `${formData.firstName} ${formData.lastName}`);
-        localStorage.setItem('email', formData.email);
-      })
-      .catch(err => {
-        console.error('Update failed:', err);
-        alert('Update failed.');
-      });
-  };
+    await Promise.all(requests);
+
+    localStorage.setItem('displayName', `${formData.firstName} ${formData.lastName}`);
+    localStorage.setItem('email', formData.email);
+    localStorage.setItem('phoneNumber', formData.phoneNumber);
+
+    alert('Profile updated successfully!');
+  } catch (err) {
+    console.error('Update failed:', err);
+    alert('Update failed.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8 bg-white shadow rounded-b-3xl">
-        <h1 className="text-4xl font-bold text-center text-blue-900 mb-10">Profile</h1>
+        <h1 className="text-4xl font-bold text-center text-blue-900 mb-10">
+          Profile
+        </h1>
 
         <div className="flex items-center justify-between flex-wrap gap-6">
           <div className="flex items-center gap-4">
@@ -188,13 +220,16 @@ const Profile = () => {
               className="w-full border rounded px-4 py-2"
             />
           </div>
-          
+
           <div className="flex justify-end">
             <button
               type="submit"
-              className="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 transition"
+              disabled={isSubmitting}
+              className={`bg-blue-700 text-white px-6 py-2 rounded transition ${
+                isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-800'
+              }`}
             >
-              Save Changes
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>

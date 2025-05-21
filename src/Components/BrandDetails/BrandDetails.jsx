@@ -14,6 +14,8 @@ export default function BrandDetails() {
     axios.get(`http://arabytak.runasp.net/api/Car/GetAllCars/${name}`)
       .then((res) => {
         setBrand(res.data);
+        console.log(res.data);
+        
       })
       .catch((err) => {
         console.error('Error fetching data:', err);
@@ -24,7 +26,7 @@ export default function BrandDetails() {
     getBrandDetails(name);
   }, [name]);
 
-  // ✅ Toggle favorites
+  
   const toggleFavorite = async (carId) => {
     setFavorites((prevFavorites) => {
       const isFavorite = prevFavorites.includes(carId);

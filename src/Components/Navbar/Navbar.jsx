@@ -150,13 +150,13 @@ export default function Navbar() {
               <i className="far fa-user"></i>
             </motion.button>
             <div className="absolute right-0 mt-2 w-40 bg-white text-black rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 z-50">
-              <a href="/login" className="block px-4 py-2 hover:bg-gray-100">
+              <a href="/SignIn" className="block px-4 py-2 hover:bg-gray-100">
                 Login
               </a>
-              <a href="/signup" className="block px-4 py-2 hover:bg-gray-100">
+              <a href="/SignUp" className="block px-4 py-2 hover:bg-gray-100">
                 Signup
               </a>
-              <a href="/profile" className="block px-4 py-2 hover:bg-gray-100">
+              <a href="/Profile" className="block px-4 py-2 hover:bg-gray-100">
                 Profile
               </a>
             </div>
