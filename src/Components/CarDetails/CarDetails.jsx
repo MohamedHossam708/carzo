@@ -116,23 +116,21 @@ export default function CarDetails() {
       </div>
 
       {/* Car Features Grid */}
-      <div className="max-w-6xl mx-auto px-4 md:px-20">
-        <h2 className="text-xl font-semibold mb-4">Car Features</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          <Feature label="Manufacture Year" value={car.specifications.year} />
-          <Feature label="Transmission" value={car.transmission || 'N/A'} />
-          <Feature label="Max Speed" value={car.maxSpeed + ' km/h'} />
-          <Feature label="Fuel" value={car.specifications.fuel} />
-          <Feature label="Engine Capacity" value={car.engineCapacity + ' CC'} />
-          <Feature label="Transmission Type" value={car.specifications.transmission} />
-          <Feature label="Seats Capacity" value={car.seatCapacity + ' Seats'} />
-          <Feature label="Country Of Origin" value={car.specifications.originCountry} />
-          <Feature label="Acceleration" value={car.acceleration} />
-          <Feature label="Condition" value={car.condition} />
-          <Feature label="Status" value={car.status} />
-          <Feature label="Status" value={car.specifications.mileage} />
-        </div>
-      </div>
+     <div className="max-w-6xl mx-auto px-4 md:px-20">
+  <h2 className="text-xl font-semibold mb-4">Car Features</h2>
+  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+    {Object.entries(car.specifications || {})
+      .filter(([_, value]) => value !== null && value !== '') // Skip null or empty values
+      .map(([key, value], idx) => {
+        // Convert camelCase or raw keys into readable labels
+        const label = key
+          .replace(/([A-Z])/g, ' $1')  // insert space before capital letters
+          .replace(/^./, str => str.toUpperCase()); // capitalize first letter
+
+        return <Feature key={idx} label={label} value={value} />;
+      })}
+  </div>
+</div>
 
       {/* CTA Button */}
       <div className="text-center mt-10">
